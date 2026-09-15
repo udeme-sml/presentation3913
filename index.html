@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -166,7 +166,7 @@
     max-width:64ch;
   }
   ul.refl li::before{
-    content:"—"; position:absolute; left:0; color:var(--amber);
+    content:"·"; position:absolute; left:0; color:var(--amber);
   }
 
   .closer{
@@ -216,7 +216,7 @@
   <section class="slide active">
     <div class="content wide" style="justify-content:center; height:100%;">
       <h1>Les niveaux de<br>test logiciel</h1>
-      <p class="lede">Pourquoi on ne teste jamais un logiciel une seule fois, de une seule façon.</p>
+      <p class="lede">On ne teste pas un logiciel une fois pour toutes, ni toujours de la même manière.</p>
       <div class="byline">présenté par <span class="name">Udeme-Obong Samuel</span></div>
     </div>
   </section>
@@ -242,7 +242,7 @@
     <div class="content">
       <h2>Un bug n'est jamais<br>trouvé au hasard</h2>
       <p class="body">Un bug repéré dans un test unitaire coûte quelques secondes à corriger : la fonction fautive est déjà isolée sous les yeux du développeur. Le même bug, repéré en production, coûte une investigation, un correctif d'urgence et parfois la confiance d'un client.</p>
-      <p class="body">Les niveaux de test existent pour une seule raison : attraper chaque type de bug au moment le moins cher possible.</p>
+      <p class="body">Les niveaux de test permettent de repérer chaque type de bug tôt, quand le correctif reste peu coûteux.</p>
     </div>
   </section>
 
@@ -250,8 +250,8 @@
     <div class="tag"><span class="num">04</span><span class="sep">/</span>12</div>
     <div class="content">
       <h2>Qu'est-ce qu'un<br>niveau de test ?</h2>
-      <p class="body">Un niveau de test est une étape distincte du développement à laquelle on vérifie le logiciel, avec un objectif et une portée précis — depuis une fonction isolée jusqu'à l'application complète face à un vrai utilisateur.</p>
-      <p class="body" style="color:var(--text-dim);">Ce n'est pas une question de rigueur croissante : c'est une question de <em>portée</em>. Chaque niveau voit une classe de bugs différente, invisible aux autres.</p>
+      <p class="body">Un niveau de test est une étape du développement où on vérifie le logiciel avec un objectif et une portée donnés, d'une fonction isolée jusqu'à l'application complète avec un utilisateur réel.</p>
+      <p class="body" style="color:var(--text-dim);">Monter de niveau ne veut pas dire « tester plus fort ». On change de <em>portée</em>. Chaque niveau met en évidence des bugs que les autres ne montrent pas.</p>
     </div>
     <div class="footnote"><span class="mk">[1]</span> ISTQB Glossary</div>
   </section>
@@ -272,11 +272,11 @@
   <section class="slide">
     <div class="tag"><span class="num">06</span><span class="sep">/</span>12</div>
     <div class="content">
-      <h2>Exemple — la fonction<br>qui ne suffit pas</h2>
+      <h2>Exemple : la fonction<br>ne suffit pas</h2>
       <div class="example">
         <div class="who">validation d'un mot de passe</div>
-        <p class="body"><code style="font-family:var(--mono); color:var(--teal);">est_mot_de_passe_fort()</code> passe tous ses tests unitaires : longueur, chiffres, symboles — tout est vert. Branchée dans le vrai formulaire d'inscription, elle rejette les mots de passe contenant des accents, à cause d'une hypothèse sur l'encodage que personne n'avait testée seule.</p>
-        <p class="body" style="color:var(--text-dim);">Le bug n'existe qu'une fois les deux pièces assemblées — seul un test d'intégration le révèle.</p>
+        <p class="body"><code style="font-family:var(--mono); color:var(--teal);">est_mot_de_passe_fort()</code> passe ses tests unitaires, y compris avec des mots de passe accentués, testés en isolation. Le formulaire d'inscription décode pourtant les octets du navigateur en Latin-1 alors que le navigateur envoie en UTF-8 : les accents sont abîmés avant d'arriver à la fonction.</p>
+        <p class="body" style="color:var(--text-dim);">La fonction seule peut être correcte. Le défaut est dans le lien avec le formulaire. Un test unitaire ne le verra pas.</p>
       </div>
     </div>
   </section>
@@ -284,11 +284,11 @@
   <section class="slide">
     <div class="tag"><span class="num">07</span><span class="sep">/</span>12</div>
     <div class="content">
-      <h2>Exemple — deux<br>services, deux arrondis</h2>
+      <h2>Exemple : deux<br>services, deux arrondis</h2>
       <div class="example">
         <div class="who">calcul d'un rabais</div>
-        <p class="body">L'équipe A calcule un rabais en pourcentage. L'équipe B l'applique en centimes. Chaque service, testé seul, est correct. Assemblés, un panier à 19,995&nbsp;$ donne deux totaux différents selon lequel arrondit en premier.</p>
-        <p class="body" style="color:var(--text-dim);">Deux unités saines, une intégration cassée.</p>
+        <p class="body">L'équipe A calcule un rabais en pourcentage. L'équipe B l'applique en centimes. Chaque service est correct testé à part. Branchés ensemble, un panier à 19,995&nbsp;$ peut donner deux totaux selon l'ordre des arrondis.</p>
+        <p class="body" style="color:var(--text-dim);">Les tests unitaires passent. C'est l'intégration qui pose problème.</p>
       </div>
     </div>
   </section>
@@ -297,11 +297,11 @@
     <div class="tag"><span class="num">08</span><span class="sep">/</span>12</div>
     <div class="content wide">
       <h2>À quoi ressemble<br>un test, concrètement</h2>
-      <pre><span class="c"># test unitaire — la fonction, seule</span>
+      <pre><span class="c"># test unitaire (fonction seule)</span>
 <span class="k">def</span> <span class="f">test_rejette_mot_de_passe_court</span>():
     <span class="k">assert</span> est_mot_de_passe_fort(<span class="s">"ab1!"</span>) == <span class="k">False</span>
 
-<span class="c"># test d'intégration — la fonction + le formulaire</span>
+<span class="c"># test d'intégration (fonction + formulaire)</span>
 <span class="k">def</span> <span class="f">test_inscription_refuse_mot_de_passe_faible</span>(client):
     reponse = client.post(<span class="s">"/inscription"</span>, motdepasse=<span class="s">"ab1!"</span>)
     <span class="k">assert</span> reponse.status == <span class="s">400</span></pre>
@@ -311,28 +311,27 @@
   <section class="slide">
     <div class="tag"><span class="num">09</span><span class="sep">/</span>12</div>
     <div class="content wide">
-      <h2>Ce que ce modèle cache</h2>
+      <h2>À ne pas oublier</h2>
       <ul class="refl">
-        <li>Le vocabulaire n'est pas universel : Google ne parle pas de « niveaux » mais de tailles de tests, classées selon les ressources consommées plutôt que la portée.</li>
-        <li>La pyramide est un idéal. En pratique, beaucoup d'équipes finissent avec l'inverse — trop de tests lents et fragiles, pas assez de tests unitaires.</li>
-        <li>Le bon niveau n'est pas le plus élevé possible : c'est celui qui attrape le bug au moindre coût.</li>
+        <li>Le vocabulaire varie. Chez Google, on parle plutôt de tailles de tests (temps, ressources) que de « niveaux » au sens portée.</li>
+        <li>La pyramide décrit un objectif. Beaucoup d'équipes ont surtout des tests lents en bout de chaîne et peu de tests unitaires.</li>
+        <li>Il faut choisir le niveau qui détecte le bug sans payer trop cher en maintenance ni en temps d'exécution.</li>
       </ul>
     </div>
-    <div class="footnote"><span class="mk">[2][3]</span> Fowler — Google Testing Blog</div>
+    <div class="footnote"><span class="mk">[2][3]</span> Fowler, Google Testing Blog</div>
   </section>
 
   <section class="slide">
     <div class="tag"><span class="num">10</span><span class="sep">/</span>12</div>
     <div class="content" style="justify-content:center; height:100%;">
-      <div class="closer">Avant d'écrire un test, demandez-vous <span class="hi">à quel niveau</span> il appartient.</div>
+      <div class="closer">Quand vous écrivez un test, précisez <span class="hi">à quel niveau</span> il se place.</div>
     </div>
   </section>
 
   <section class="slide">
     <div class="tag"><span class="num">11</span><span class="sep">/</span>12</div>
     <div class="content" style="justify-content:center; height:100%;">
-      <p class="lede" style="margin-bottom:24px;">une question pour vous</p>
-      <div class="question">Dans l'exemple du panier à deux arrondis, quel est le seul niveau de test capable de révéler l'écart ?</div>
+      <div class="question">Pour le panier à deux arrondis : quel niveau de test permet de voir l'écart ?</div>
     </div>
   </section>
 
@@ -342,8 +341,8 @@
       <h2>Sources</h2>
       <ul class="sources">
         <li><span class="label">[1] ISTQB Glossary</span><span class="url">glossary.istqb.org</span></li>
-        <li><span class="label">[2] Martin Fowler — « TestPyramid »</span><span class="url">martinfowler.com/bliki/TestPyramid.html</span></li>
-        <li><span class="label">[3] Google Testing Blog — « Test Sizes »</span><span class="url">testing.googleblog.com/2010/12/test-sizes.html</span></li>
+        <li><span class="label">[2] Martin Fowler, « TestPyramid »</span><span class="url">martinfowler.com/bliki/TestPyramid.html</span></li>
+        <li><span class="label">[3] Google Testing Blog, « Test Sizes »</span><span class="url">testing.googleblog.com/2010/12/test-sizes.html</span></li>
       </ul>
     </div>
   </section>
