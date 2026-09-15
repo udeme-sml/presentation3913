@@ -1,0 +1,391 @@
+ <!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les niveaux de test logiciel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12141c;
+    --surface:#1b1e29;
+    --surface-2:#232735;
+    --line:#31364a;
+    --text:#edeae0;
+    --text-dim:#9a9cae;
+    --amber:#e0a458;
+    --teal:#4fa695;
+    --indigo:#8c85d6;
+    --coral:#e0785a;
+    --pink:#d6698c;
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--ink); color:var(--text);
+    font-family:var(--sans);
+    overflow:hidden;
+  }
+  .deck{
+    position:relative;
+    width:100vw; height:100vh;
+  }
+  .slide{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    padding:6vh 8vw 8vh 8vw;
+    opacity:0; visibility:hidden;
+    transform:translateY(14px);
+    transition:opacity .45s ease, transform .45s ease;
+    pointer-events:none;
+  }
+  .slide.active{
+    opacity:1; visibility:visible;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+  @media (prefers-reduced-motion:reduce){
+    .slide{ transition:opacity .01s linear; transform:none; }
+  }
+
+  .tag{
+    font-family:var(--mono); font-size:13px; letter-spacing:.02em;
+    color:var(--text-dim);
+    display:flex; align-items:baseline; gap:10px;
+    margin-bottom:auto;
+  }
+  .tag .num{ color:var(--amber); }
+  .tag .sep{ color:var(--line); }
+
+  .content{
+    display:flex; flex-direction:column; justify-content:center;
+    flex:1; max-width:760px;
+  }
+  .content.wide{ max-width:920px; }
+
+  h1{
+    font-family:var(--mono); font-weight:600;
+    font-size:clamp(34px,4.6vw,58px);
+    line-height:1.12; margin:0 0 22px 0; color:var(--text);
+  }
+  h2{
+    font-family:var(--mono); font-weight:600;
+    font-size:clamp(26px,3.2vw,40px);
+    line-height:1.18; margin:0 0 26px 0; color:var(--text);
+  }
+  p.lede{
+    font-size:clamp(17px,1.5vw,21px); line-height:1.6;
+    color:var(--text-dim); max-width:60ch; margin:0 0 14px 0;
+  }
+  p.body{
+    font-size:clamp(16px,1.3vw,19px); line-height:1.7;
+    color:var(--text); max-width:62ch; margin:0 0 16px 0;
+  }
+  .byline{
+    font-family:var(--mono); font-size:15px; color:var(--text-dim);
+    margin-top:18px;
+  }
+  .byline .name{ color:var(--amber); }
+
+  .footnote{
+    position:absolute; left:8vw; bottom:5vh;
+    font-family:var(--mono); font-size:12px; color:var(--text-dim);
+    display:flex; gap:6px; align-items:baseline;
+  }
+  .footnote .mk{ color:var(--amber); }
+
+  /* plan / timeline list */
+  ol.plan{ list-style:none; margin:0; padding:0; position:relative; }
+  ol.plan::before{
+    content:""; position:absolute; left:11px; top:8px; bottom:8px;
+    width:1px; background:var(--line);
+  }
+  ol.plan li{
+    position:relative; padding:8px 0 8px 40px;
+    font-size:clamp(16px,1.4vw,20px); color:var(--text-dim);
+  }
+  ol.plan li::before{
+    content:attr(data-n); position:absolute; left:0; top:8px;
+    width:24px; height:24px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:11px; color:var(--text-dim);
+  }
+  ol.plan li.now{ color:var(--text); }
+  ol.plan li.now::before{ background:var(--amber); border-color:var(--amber); color:var(--ink); font-weight:600; }
+
+  /* levels stack (echoes the pyramid) */
+  .stack{ display:flex; flex-direction:column-reverse; gap:8px; width:100%; max-width:640px; }
+  .lvl{
+    border-radius:10px; padding:14px 20px;
+    display:flex; align-items:baseline; gap:14px;
+    border:1px solid transparent;
+  }
+  .lvl .name{ font-family:var(--mono); font-weight:600; font-size:16px; white-space:nowrap; }
+  .lvl .desc{ font-size:14px; color:var(--text-dim); }
+  .lvl.l1{ width:100%; background:rgba(79,166,149,.14); border-color:rgba(79,166,149,.4); }
+  .lvl.l1 .name{ color:var(--teal); }
+  .lvl.l2{ width:84%; background:rgba(140,133,214,.14); border-color:rgba(140,133,214,.4); }
+  .lvl.l2 .name{ color:var(--indigo); }
+  .lvl.l3{ width:66%; background:rgba(224,120,90,.14); border-color:rgba(224,120,90,.4); }
+  .lvl.l3 .name{ color:var(--coral); }
+  .lvl.l4{ width:48%; background:rgba(214,105,140,.14); border-color:rgba(214,105,140,.4); }
+  .lvl.l4 .name{ color:var(--pink); }
+
+  /* example card */
+  .example{
+    border-left:2px solid var(--amber);
+    padding:4px 0 4px 22px; margin-top:6px;
+  }
+  .example .who{
+    font-family:var(--mono); font-size:13px; color:var(--text-dim);
+    margin-bottom:8px;
+  }
+
+  /* code block */
+  pre{
+    font-family:var(--mono); font-size:clamp(13px,1.15vw,16px);
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:22px 26px; line-height:1.65;
+    color:var(--text); overflow-x:auto; max-width:640px;
+  }
+  pre .c{ color:var(--text-dim); }
+  pre .k{ color:var(--indigo); }
+  pre .s{ color:var(--teal); }
+  pre .f{ color:var(--amber); }
+
+  /* reflection list */
+  ul.refl{ list-style:none; margin:0; padding:0; }
+  ul.refl li{
+    position:relative; padding:10px 0 10px 22px;
+    font-size:clamp(16px,1.3vw,19px); line-height:1.6; color:var(--text);
+    max-width:64ch;
+  }
+  ul.refl li::before{
+    content:"—"; position:absolute; left:0; color:var(--amber);
+  }
+
+  .closer{
+    font-family:var(--mono); font-weight:600;
+    font-size:clamp(24px,2.6vw,34px); line-height:1.4;
+    color:var(--text); max-width:16ch;
+  }
+  .closer .hi{ color:var(--amber); }
+
+  .question{
+    font-size:clamp(22px,2.4vw,30px); line-height:1.5;
+    color:var(--text); max-width:22ch; font-weight:500;
+  }
+
+  .sources{ list-style:none; margin:0; padding:0; }
+  .sources li{
+    padding:14px 0; border-top:1px solid var(--line);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .sources li:last-child{ border-bottom:1px solid var(--line); }
+  .sources .label{ font-family:var(--mono); font-size:15px; color:var(--text); }
+  .sources .url{ font-family:var(--mono); font-size:13px; color:var(--amber); word-break:break-all; }
+
+  /* chrome: progress + nav */
+  .progress{
+    position:absolute; top:0; left:0; height:2px; background:var(--amber);
+    transition:width .4s ease; z-index:5;
+  }
+  .navhint{
+    position:absolute; right:8vw; bottom:5vh;
+    font-family:var(--mono); font-size:12px; color:var(--text-dim);
+    display:flex; align-items:center; gap:10px;
+  }
+  .navhint button{
+    font-family:var(--mono); background:var(--surface-2); color:var(--text);
+    border:1px solid var(--line); border-radius:6px;
+    width:30px; height:30px; cursor:pointer; font-size:14px;
+  }
+  .navhint button:hover{ border-color:var(--amber); color:var(--amber); }
+  .navhint button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+  <div class="progress" id="progress"></div>
+
+  <section class="slide active">
+    <div class="content wide" style="justify-content:center; height:100%;">
+      <h1>Les niveaux de<br>test logiciel</h1>
+      <p class="lede">Pourquoi on ne teste jamais un logiciel une seule fois, de une seule façon.</p>
+      <div class="byline">présenté par <span class="name">Udeme-Obong Samuel</span></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">02</span><span class="sep">/</span>12</div>
+    <div class="content">
+      <h2>Plan</h2>
+      <ol class="plan">
+        <li data-n="1">Pourquoi ça compte</li>
+        <li data-n="2">Définir le concept</li>
+        <li data-n="3">Les quatre niveaux</li>
+        <li data-n="4">Deux exemples concrets</li>
+        <li data-n="5">Un extrait de code</li>
+        <li data-n="6">Réflexion</li>
+        <li data-n="7">Ce qu'il faut retenir</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">03</span><span class="sep">/</span>12</div>
+    <div class="content">
+      <h2>Un bug n'est jamais<br>trouvé au hasard</h2>
+      <p class="body">Un bug repéré dans un test unitaire coûte quelques secondes à corriger : la fonction fautive est déjà isolée sous les yeux du développeur. Le même bug, repéré en production, coûte une investigation, un correctif d'urgence et parfois la confiance d'un client.</p>
+      <p class="body">Les niveaux de test existent pour une seule raison : attraper chaque type de bug au moment le moins cher possible.</p>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">04</span><span class="sep">/</span>12</div>
+    <div class="content">
+      <h2>Qu'est-ce qu'un<br>niveau de test ?</h2>
+      <p class="body">Un niveau de test est une étape distincte du développement à laquelle on vérifie le logiciel, avec un objectif et une portée précis — depuis une fonction isolée jusqu'à l'application complète face à un vrai utilisateur.</p>
+      <p class="body" style="color:var(--text-dim);">Ce n'est pas une question de rigueur croissante : c'est une question de <em>portée</em>. Chaque niveau voit une classe de bugs différente, invisible aux autres.</p>
+    </div>
+    <div class="footnote"><span class="mk">[1]</span> ISTQB Glossary</div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">05</span><span class="sep">/</span>12</div>
+    <div class="content wide">
+      <h2>Quatre niveaux,<br>quatre portées</h2>
+      <div class="stack">
+        <div class="lvl l4"><span class="name">acceptation</span><span class="desc">le besoin utilisateur est-il satisfait ?</span></div>
+        <div class="lvl l3"><span class="name">système</span><span class="desc">l'application complète, bout en bout</span></div>
+        <div class="lvl l2"><span class="name">intégration</span><span class="desc">plusieurs modules assemblés</span></div>
+        <div class="lvl l1"><span class="name">unitaire</span><span class="desc">une seule fonction, isolée</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">06</span><span class="sep">/</span>12</div>
+    <div class="content">
+      <h2>Exemple — la fonction<br>qui ne suffit pas</h2>
+      <div class="example">
+        <div class="who">validation d'un mot de passe</div>
+        <p class="body"><code style="font-family:var(--mono); color:var(--teal);">est_mot_de_passe_fort()</code> passe tous ses tests unitaires : longueur, chiffres, symboles — tout est vert. Branchée dans le vrai formulaire d'inscription, elle rejette les mots de passe contenant des accents, à cause d'une hypothèse sur l'encodage que personne n'avait testée seule.</p>
+        <p class="body" style="color:var(--text-dim);">Le bug n'existe qu'une fois les deux pièces assemblées — seul un test d'intégration le révèle.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">07</span><span class="sep">/</span>12</div>
+    <div class="content">
+      <h2>Exemple — deux<br>services, deux arrondis</h2>
+      <div class="example">
+        <div class="who">calcul d'un rabais</div>
+        <p class="body">L'équipe A calcule un rabais en pourcentage. L'équipe B l'applique en centimes. Chaque service, testé seul, est correct. Assemblés, un panier à 19,995&nbsp;$ donne deux totaux différents selon lequel arrondit en premier.</p>
+        <p class="body" style="color:var(--text-dim);">Deux unités saines, une intégration cassée.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">08</span><span class="sep">/</span>12</div>
+    <div class="content wide">
+      <h2>À quoi ressemble<br>un test, concrètement</h2>
+      <pre><span class="c"># test unitaire — la fonction, seule</span>
+<span class="k">def</span> <span class="f">test_rejette_mot_de_passe_court</span>():
+    <span class="k">assert</span> est_mot_de_passe_fort(<span class="s">"ab1!"</span>) == <span class="k">False</span>
+
+<span class="c"># test d'intégration — la fonction + le formulaire</span>
+<span class="k">def</span> <span class="f">test_inscription_refuse_mot_de_passe_faible</span>(client):
+    reponse = client.post(<span class="s">"/inscription"</span>, motdepasse=<span class="s">"ab1!"</span>)
+    <span class="k">assert</span> reponse.status == <span class="s">400</span></pre>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">09</span><span class="sep">/</span>12</div>
+    <div class="content wide">
+      <h2>Ce que ce modèle cache</h2>
+      <ul class="refl">
+        <li>Le vocabulaire n'est pas universel : Google ne parle pas de « niveaux » mais de tailles de tests, classées selon les ressources consommées plutôt que la portée.</li>
+        <li>La pyramide est un idéal. En pratique, beaucoup d'équipes finissent avec l'inverse — trop de tests lents et fragiles, pas assez de tests unitaires.</li>
+        <li>Le bon niveau n'est pas le plus élevé possible : c'est celui qui attrape le bug au moindre coût.</li>
+      </ul>
+    </div>
+    <div class="footnote"><span class="mk">[2][3]</span> Fowler — Google Testing Blog</div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">10</span><span class="sep">/</span>12</div>
+    <div class="content" style="justify-content:center; height:100%;">
+      <div class="closer">Avant d'écrire un test, demandez-vous <span class="hi">à quel niveau</span> il appartient.</div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">11</span><span class="sep">/</span>12</div>
+    <div class="content" style="justify-content:center; height:100%;">
+      <p class="lede" style="margin-bottom:24px;">une question pour vous</p>
+      <div class="question">Dans l'exemple du panier à deux arrondis, quel est le seul niveau de test capable de révéler l'écart ?</div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="tag"><span class="num">12</span><span class="sep">/</span>12</div>
+    <div class="content wide">
+      <h2>Sources</h2>
+      <ul class="sources">
+        <li><span class="label">[1] ISTQB Glossary</span><span class="url">glossary.istqb.org</span></li>
+        <li><span class="label">[2] Martin Fowler — « TestPyramid »</span><span class="url">martinfowler.com/bliki/TestPyramid.html</span></li>
+        <li><span class="label">[3] Google Testing Blog — « Test Sizes »</span><span class="url">testing.googleblog.com/2010/12/test-sizes.html</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="navhint">
+    <button id="prev" aria-label="Diapositive précédente">&#8592;</button>
+    <span id="counter">01 / 12</span>
+    <button id="next" aria-label="Diapositive suivante">&#8594;</button>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let i = 0;
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function render(){
+    slides.forEach((s,idx)=> s.classList.toggle('active', idx===i));
+    counter.textContent = pad(i+1) + ' / ' + pad(total);
+    progress.style.width = (((i+1)/total)*100) + '%';
+  }
+
+  function go(delta){
+    i = Math.max(0, Math.min(total-1, i+delta));
+    render();
+  }
+
+  document.getElementById('prev').addEventListener('click', ()=>go(-1));
+  document.getElementById('next').addEventListener('click', ()=>go(1));
+
+  window.addEventListener('keydown', (e)=>{
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); go(1); }
+    if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); go(-1); }
+    if(e.key === 'Home'){ i=0; render(); }
+    if(e.key === 'End'){ i=total-1; render(); }
+  });
+
+  render();
+</script>
+</body>
+</html>
